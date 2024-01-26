@@ -40,7 +40,7 @@ pub fn read_csv_and_insert(conn: &Connection, file_path: &str) -> io::Result<()>
             Err(err) => error!("update failed: {}", err),
         };
 
-        if rows > 10 {
+        if rows > 9 {
             info!("Inserted 10 rows exiting");
             break;
         }
