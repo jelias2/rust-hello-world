@@ -39,35 +39,6 @@ pub async fn create_user(
     (StatusCode::CREATED, Json(user))
 }
 
-// pub struct ResponseObject {
-//     message: String,
-//     status_code: u32,
-// }
-
-// pub async fn create_response_object(// this argument tells axum to parse the request body
-//     // as JSON into a `CreateUser` type
-//     // Json(payload): Json<CreateUser>,
-// ) -> (StatusCode, Json<ResponseObject>) {
-//     // insert your application logic here
-//     let resp = ResponseObject {
-//         message: "Hello dumbass".to_string(),
-//         status_code: 42,
-//     };
-
-//     // this will be converted into a JSON response
-//     // with a status code of `201 Created`
-//     (StatusCode::ACCEPTED, Json(resp))
-// }
-
-// Handler function for the GET request
-// pub async fn handle_get() -> Result<Json<&'static ResponseObject>, StatusCode> {
-//     let resp = ResponseObject {
-//         message: "This is a GET request handler".to_string(),
-//         status_code: 200,
-//     };
-//     Ok(Json(resp))ub
-// }
-
 #[derive(Serialize)]
 pub struct MyData {
     message: &'static str,
@@ -82,5 +53,4 @@ pub async fn handle_get() -> Result<Json<MyData>, StatusCode> {
 
     // Return the struct as JSON
     Ok(Json(data))
-    // Err(StatusCode::ACCEPTED.into())
 }
