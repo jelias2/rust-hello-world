@@ -53,6 +53,8 @@ async fn main() {
         std::process::exit(1);
     }
 
+    let _ = query_data_by_id(&conn, 5881791);
+
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
