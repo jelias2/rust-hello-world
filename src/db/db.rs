@@ -163,10 +163,6 @@ pub fn create_table(conn: &Connection) -> Result<()> {
                 feat_code VARCHAR(10),
                 country CHAR(2),
                 cc2 VARCHAR(2),
-                admin1 INT,
-                admin2 INT,
-                admin3 INT,
-                admin4 INT,
                 population INT,
                 elevation INT,
                 dem INT,
@@ -195,7 +191,30 @@ pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
         // info!("Row: id={}, name={}, ascii={}, alt_name={}, lat={}, long={}, feat_class={}, feat_code={}, country={}, cc2={}, admin1={}, admin2={}, admin3={}, admin4={}, population={}, elevation={}, dem={}, tz={}, modified_at={}", id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, admin1, admin2, admin3, admin4, population, elevation, dem, tz, modified_at);
         let id: i32 = row.get(0)?;
         let name: String = row.get(1)?;
-        info!("Row: id={} name={}", id, name);
+        let ascii: String = row.get(2)?; // Adjust the type based on your column types
+        let alt_name: String = row.get(3)?; // Adjust the type based on your column types
+        let lat: f64 = row.get(4)?; // Adjust the type based on your column types
+        let long: f64 = row.get(5)?; // Adjust the type based on your column types
+        let feat_class: String = row.get(6)?; // Adjust the type based on your column types
+        let feat_code: String = row.get(7)?; // Adjust the type based on your column types
+        let country: String = row.get(8)?; // Adjust the type based on your column types
+        let cc2: String = row.get(9)?; // Adjust the type based on your column types
+        let mut population_num: i32 = -1;
+        match row.get(10) {
+            Ok(population) => {
+                population_num = population;
+            }
+            Err(err) => {
+                error!("Error parsing population: {}", err);
+            }
+        }
+        let elevation: i32 = row.get(11)?; // Adjust the type based on your column types
+        let dem: i32 = row.get(12)?; // Adjust the type based on your column types
+        let tz: String = row.get(13)?; // Adjust the type based on your column types
+        info!(
+            "Row: id={} name={} ascii={} alt_name={} lat={} long={} feat_class={} feat_code={} country={} cc2={}, population={}, elevation={}, dem={}, tz={}",
+            id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population_num, elevation, dem, tz
+        );
     }
     // let id: i32 = row.get(0)?; // Adjust the type based on your column types
     // let name: String = row.get(1)?; // Adjust the type based on your column types
