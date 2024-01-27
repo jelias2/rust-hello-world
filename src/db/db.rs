@@ -1,6 +1,7 @@
 use csv::ReaderBuilder;
 use log::{error, info, warn};
 use rusqlite::{params, Connection, Result};
+use std::fmt::Debug;
 use std::fs::File;
 use std::io::{self, Read};
 
@@ -189,32 +190,37 @@ pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
     // Query data from the SQLite database
     info!("Querying for rows id: {}", id);
     let mut stmt = conn.prepare("SELECT * FROM cities_usa_canada")?;
-    let rows = stmt.query_map([], |row| {
-        let id: i32 = row.get(0)?; // Adjust the type based on your column types
-        let name: String = row.get(1)?; // Adjust the type based on your column types
-        let ascii: String = row.get(2)?; // Adjust the type based on your column types
-        let alt_name: String = row.get(3)?; // Adjust the type based on your column types
-        let lat: f64 = row.get(4)?; // Adjust the type based on your column types
-        let long: f64 = row.get(5)?; // Adjust the type based on your column types
-        let feat_class: String = row.get(6)?; // Adjust the type based on your column types
-        let feat_code: String = row.get(7)?; // Adjust the type based on your column types
-        let country: String = row.get(8)?; // Adjust the type based on your column types
-        let cc2: String = row.get(9)?; // Adjust the type based on your column types
-        let admin1: i32 = row.get(10)?; // Adjust the type based on your column types
-        let admin2: i32 = row.get(11)?; // Adjust the type based on your column types
-        let admin3: i32 = row.get(12)?; // Adjust the type based on your column types
-        let admin4: i32 = row.get(13)?; // Adjust the type based on your column types
-        let population: i32 = row.get(14)?; // Adjust the type based on your column types
-        let elevation: i32 = row.get(15)?; // Adjust the type based on your column types
-        let dem: i32 = row.get(16)?; // Adjust the type based on your column types
-        let tz: String = row.get(17)?; // Adjust the type based on your column types
-        let modified_at: String = row.get(18)?; // Adjust the type based on your column types
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        // info!("Row: id={}, name={}, ascii={}, alt_name={}, lat={}, long={}, feat_class={}, feat_code={}, country={}, cc2={}, admin1={}, admin2={}, admin3={}, admin4={}, population={}, elevation={}, dem={}, tz={}, modified_at={}", id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, admin1, admin2, admin3, admin4, population, elevation, dem, tz, modified_at);
+        let id: i32 = row.get(0)?;
+        let name: String = row.get(1)?;
+        info!("Row: id={} name={}", id, name);
+    }
+    // let id: i32 = row.get(0)?; // Adjust the type based on your column types
+    // let name: String = row.get(1)?; // Adjust the type based on your column types
+    // let ascii: String = row.get(2)?; // Adjust the type based on your column types
+    // let alt_name: String = row.get(3)?; // Adjust the type based on your column types
+    // let lat: f64 = row.get(4)?; // Adjust the type based on your column types
+    // let long: f64 = row.get(5)?; // Adjust the type based on your column types
+    // let feat_class :String = row.get(6)?; // Adjust the type based on your column types
+    // let feat_code: String = row.get(7)?; // Adjust the type based on your column types
+    // let country: String = row.get(8)?; // Adjust the type based on your column types
+    // let cc2: String = row.get(9)?; // Adjust the type based on your column types
+    // let admin1: i32 = row.get(10)?; // Adjust the type based on your column types
+    // let admin2: i32 = row.get(11)?; // Adjust the type based on your column types
+    // let admin3: i32 = row.get(12)?; // Adjust the type based on your column types
+    // let admin4: i32 = row.get(13)?; // Adjust the type based on your column types
+    // let population: i32 = row.get(14)?; // Adjust the type based on your column types
+    // let elevation: i32 = row.get(15)?; // Adjust the type based on your column types
+    // let dem: i32 = row.get(16)?; // Adjust the type based on your column types
+    // let tz: String = row.get(17)?; // Adjust the type based on your column types
+    // let modified_at: String = row.get(18)?; // Adjust the type based on your column types
 
-        // Log the row and its columns
-        info!("Row: id={}, name={}, ascii={}, alt_name={}, lat={}, long={}, feat_class={}, feat_code={}, country={}, cc2={}, admin1={}, admin2={}, admin3={}, admin4={}, population={}, elevation={}, dem={}, tz={}, modified_at={}", id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, admin1, admin2, admin3, admin4, population, elevation, dem, tz, modified_at);
+    // // Log the row and its columns
 
-        Ok(())
-    }).map_err(|err| error!("Error iterating over rows: {}", err)); // Log an error if the iterator fails
+    // Ok(())
+    // }).map_err(|err| error!("Error iterating over rows: {}", err)); // Log an error if the iterator fails
 
     Ok(())
 }
