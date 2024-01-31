@@ -1,6 +1,6 @@
 // use axum::Error;
 // use csv::ReaderBuilder;
-use log::{error, info, warn};
+use log::{error, info};
 use rusqlite::{params, Connection, Result};
 // use std::fmt::Debug;
 use std::fs::File;
@@ -105,24 +105,15 @@ pub fn read_csv_and_insert(conn: &Connection, file_path: &str) -> io::Result<()>
 
         let population: i32 = match record[14].parse() {
             Ok(population) => population,
-            Err(err) => {
-                error!("Error parsing population: {}", err);
-                continue;
-            }
+            Err(_) => -1,
         };
         let elevation: i32 = match record[15].parse() {
             Ok(elevation) => elevation,
-            Err(err) => {
-                warn!("Error parsing elevation: {}", err);
-                0
-            }
+            Err(_) => -1,
         };
         let dem: i32 = match record[16].parse() {
             Ok(dem) => dem,
-            Err(err) => {
-                error!("Error parsing dem: {}", err);
-                continue;
-            }
+            Err(_) => -1,
         };
         let tz = &record[17];
         let modified_at = &record[18];
@@ -132,24 +123,19 @@ pub fn read_csv_and_insert(conn: &Connection, file_path: &str) -> io::Result<()>
             "INSERT INTO cities_usa_canada (id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz, modified_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
             params![id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz, modified_at],
         ) {
-            Ok(updated) => {
+            Ok(_) => {
                 rows += 1;
-                info!("{} rows were updated. Total Rows: {}", updated, rows);
             }
             Err(err) => error!("update failed: {}", err),
         };
-
-        if rows > 9 {
-            info!("Inserted 10 rows exiting");
-            break;
-        }
     }
+    info!("Total Rows: {}", rows);
     Ok(())
 }
 
 pub fn create_table(conn: &Connection) -> Result<()> {
     info!("Creating table");
-    let ok = match conn.execute(
+    match conn.execute(
         "CREATE TABLE cities_usa_canada (
                 id INT,
                 name VARCHAR(255),
@@ -183,8 +169,8 @@ pub fn create_table(conn: &Connection) -> Result<()> {
 pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<Vec<City>> {
     // Query data from the SQLite database
     info!("Querying for rows id: {}", id);
-    let mut stmt = conn.prepare("SELECT * FROM cities_usa_canada")?;
-    let mut rows = stmt.query([])?;
+    let mut stmt = conn.prepare("SELECT * FROM cities_usa_canada WHERE id=(?1)")?;
+    let mut rows = stmt.query([id])?;
     let mut cities = Vec::<City>::new();
     while let Some(row) = rows.next()? {
         let id: i32 = row.get(0)?;

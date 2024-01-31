@@ -9,7 +9,7 @@ mod utils;
 use utils::utils::*;
 mod db;
 use db::db::*;
-use rusqlite::{params, Connection, Result};
+use rusqlite::Connection;
 
 #[tokio::main]
 
