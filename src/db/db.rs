@@ -71,7 +71,7 @@ pub async fn read_csv_and_insert(pool: &PgPool, file_path: &str) -> io::Result<(
     let mut rdr = csv::Reader::from_reader(file);
 
     // Iterate over CSV records and insert into the SQLite database
-    let mut rows = 0;
+    // let mut rows = 0;
     for result in rdr.records() {
         let record = result?;
         let id: i32 = match record[0].parse() {
@@ -116,11 +116,11 @@ pub async fn read_csv_and_insert(pool: &PgPool, file_path: &str) -> io::Result<(
             Err(_) => -1,
         };
         let tz = &record[17];
-        let modified_at = &record[18];
+        // let modified_at = &record[18];
 
         // Insert data into the SQLite database
         let result = sqlx::query(
-            "INSERT INTO cities_usa_canada (id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz, modified_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)")
+            "INSERT INTO cities_usa_canada (id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)")
             .bind(id)
             .bind(name)
             .bind(ascii)
@@ -135,7 +135,7 @@ pub async fn read_csv_and_insert(pool: &PgPool, file_path: &str) -> io::Result<(
             .bind(elevation)
             .bind(dem)
             .bind(tz)
-            .bind(modified_at)
+            // .bind(modified_at)
         .execute(pool).await;
         match result {
             Ok(_) => {
