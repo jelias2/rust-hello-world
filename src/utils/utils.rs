@@ -22,7 +22,7 @@ pub async fn query_city(
 ) -> Result<(StatusCode, Json<Vec<db::City>>), (StatusCode, Json<String>)> {
     // this will be converted into a JSON response
     // with a status code of `201 Created`
-    match db::query_data_by_id(&state, "5881791".to_string()).await {
+    match db::query_data_by_id(&state, 5881791).await {
         Ok(city) => Ok((StatusCode::CREATED, Json(city))),
         Err(err) => Err((StatusCode::NOT_FOUND, Json(err.to_string()))),
     }

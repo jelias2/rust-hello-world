@@ -56,7 +56,7 @@ async fn main() {
         std::process::exit(1);
     }
 
-    let cities = match query_data_by_id(&pool, "5881791".to_string()).await {
+    let cities = match query_data_by_id(&pool, 5881791).await {
         Ok(cities) => cities,
         Err(err) => {
             error!("Error querying by ID: {}", err);

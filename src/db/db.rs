@@ -215,10 +215,10 @@ pub async fn create_table(pool: &sqlx::PgPool) -> Result<(), sqlx::Error> {
 //     };
 // }
 
-pub async fn query_data_by_id(pool: &PgPool, id: String) -> Result<Vec<City>, sqlx::Error> {
+pub async fn query_data_by_id(pool: &PgPool, id: i32) -> Result<Vec<City>, sqlx::Error> {
     // Query data from the SQLite database
     info!("Querying for rows id: {}", id);
-    let rows = sqlx::query("SELECT * FROM cities_usa_canada WHERE id=(?1")
+    let rows = sqlx::query("SELECT * FROM cities_usa_canada WHERE id=($1)")
         .bind(id)
         .fetch_all(pool)
         .await;
