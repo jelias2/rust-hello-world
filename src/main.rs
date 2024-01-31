@@ -53,7 +53,17 @@ async fn main() {
         std::process::exit(1);
     }
 
-    let _ = query_data_by_id(&conn, 5881791);
+    let cities = match query_data_by_id(&conn, 5881791) {
+        Ok(cities) => cities,
+        Err(err) => {
+            error!("Error querying by ID: {}", err);
+            std::process::exit(1);
+        }
+    };
+
+    for i in cities {
+        info!("City Name: {} population: {}", i.name, i.population);
+    }
 
     // build our application with a route
     let app = Router::new()

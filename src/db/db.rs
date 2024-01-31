@@ -1,13 +1,14 @@
-use csv::ReaderBuilder;
+// use axum::Error;
+// use csv::ReaderBuilder;
 use log::{error, info, warn};
 use rusqlite::{params, Connection, Result};
-use std::fmt::Debug;
+// use std::fmt::Debug;
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self};
 
-struct City {
+pub struct City {
     id: i32,
-    name: String,
+    pub name: String,
     ascii: String,
     alt_name: String,
     lat: f64,
@@ -16,15 +17,14 @@ struct City {
     feat_code: String,
     country: String,
     cc2: String,
-    population: i32,
+    pub population: i32,
     elevation: i32,
     dem: i32,
     tz: String,
-    modified_at: String,
 }
 
 impl City {
-    fn new(
+    pub fn new(
         id: i32,
         name: String,
         ascii: String,
@@ -39,7 +39,6 @@ impl City {
         elevation: i32,
         dem: i32,
         tz: String,
-        modified_at: String,
     ) -> City {
         City {
             id,
@@ -56,7 +55,6 @@ impl City {
             elevation,
             dem,
             tz,
-            modified_at,
         }
     }
 }
@@ -182,13 +180,13 @@ pub fn create_table(conn: &Connection) -> Result<()> {
     };
 }
 
-pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
+pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<Vec<City>> {
     // Query data from the SQLite database
     info!("Querying for rows id: {}", id);
     let mut stmt = conn.prepare("SELECT * FROM cities_usa_canada")?;
     let mut rows = stmt.query([])?;
+    let mut cities = Vec::<City>::new();
     while let Some(row) = rows.next()? {
-        // info!("Row: id={}, name={}, ascii={}, alt_name={}, lat={}, long={}, feat_class={}, feat_code={}, country={}, cc2={}, admin1={}, admin2={}, admin3={}, admin4={}, population={}, elevation={}, dem={}, tz={}, modified_at={}", id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, admin1, admin2, admin3, admin4, population, elevation, dem, tz, modified_at);
         let id: i32 = row.get(0)?;
         let name: String = row.get(1)?;
         let ascii: String = row.get(2)?; // Adjust the type based on your column types
@@ -211,37 +209,30 @@ pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
         let elevation: i32 = row.get(11)?; // Adjust the type based on your column types
         let dem: i32 = row.get(12)?; // Adjust the type based on your column types
         let tz: String = row.get(13)?; // Adjust the type based on your column types
-        info!(
-            "Row: id={} name={} ascii={} alt_name={} lat={} long={} feat_class={} feat_code={} country={} cc2={}, population={}, elevation={}, dem={}, tz={}",
-            id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population_num, elevation, dem, tz
-        );
+        info!("Row: id={}, name={}, ascii={}, alt_name={}, lat={}, long={}, feat_class={}, feat_code={}, country={}, cc2={}, population={}, elevation={}, dem={}, tz={}", id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population_num, elevation, dem, tz);
+        cities.push(City::new(
+            id,
+            name,
+            ascii,
+            alt_name,
+            lat,
+            long,
+            feat_class,
+            feat_code,
+            country,
+            cc2,
+            population_num,
+            elevation,
+            dem,
+            tz,
+        ));
     }
-    // let id: i32 = row.get(0)?; // Adjust the type based on your column types
-    // let name: String = row.get(1)?; // Adjust the type based on your column types
-    // let ascii: String = row.get(2)?; // Adjust the type based on your column types
-    // let alt_name: String = row.get(3)?; // Adjust the type based on your column types
-    // let lat: f64 = row.get(4)?; // Adjust the type based on your column types
-    // let long: f64 = row.get(5)?; // Adjust the type based on your column types
-    // let feat_class :String = row.get(6)?; // Adjust the type based on your column types
-    // let feat_code: String = row.get(7)?; // Adjust the type based on your column types
-    // let country: String = row.get(8)?; // Adjust the type based on your column types
-    // let cc2: String = row.get(9)?; // Adjust the type based on your column types
-    // let admin1: i32 = row.get(10)?; // Adjust the type based on your column types
-    // let admin2: i32 = row.get(11)?; // Adjust the type based on your column types
-    // let admin3: i32 = row.get(12)?; // Adjust the type based on your column types
-    // let admin4: i32 = row.get(13)?; // Adjust the type based on your column types
-    // let population: i32 = row.get(14)?; // Adjust the type based on your column types
-    // let elevation: i32 = row.get(15)?; // Adjust the type based on your column types
-    // let dem: i32 = row.get(16)?; // Adjust the type based on your column types
-    // let tz: String = row.get(17)?; // Adjust the type based on your column types
-    // let modified_at: String = row.get(18)?; // Adjust the type based on your column types
+    // Check if any rows were found
+    if cities.is_empty() {
+        return Err(rusqlite::Error::QueryReturnedNoRows.into());
+    }
 
-    // // Log the row and its columns
-
-    // Ok(())
-    // }).map_err(|err| error!("Error iterating over rows: {}", err)); // Log an error if the iterator fails
-
-    Ok(())
+    Ok(cities)
 }
 // pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
 //     info!("Querying data for ID: {}", id);
