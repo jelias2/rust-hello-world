@@ -1,8 +1,8 @@
 // use axum::Error;
 // use csv::ReaderBuilder;
 use log::{error, info};
-use rusqlite::{params, Connection, Result};
-// use std::fmt::Debug;
+use sqlx::PgPool;
+use sqlx::Row;
 use std::fs::File;
 use std::io::{self};
 
@@ -59,7 +59,7 @@ impl City {
     }
 }
 
-pub fn read_csv_and_insert(conn: &Connection, file_path: &str) -> io::Result<()> {
+pub async fn read_csv_and_insert(pool: &PgPool, file_path: &str) -> io::Result<()> {
     // Open the CSV file
     let file = match File::open(file_path) {
         Ok(file) => file,
@@ -119,24 +119,39 @@ pub fn read_csv_and_insert(conn: &Connection, file_path: &str) -> io::Result<()>
         let modified_at = &record[18];
 
         // Insert data into the SQLite database
-        match conn.execute(
-            "INSERT INTO cities_usa_canada (id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz, modified_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
-            params![id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz, modified_at],
-        ) {
+        let result = sqlx::query(
+            "INSERT INTO cities_usa_canada (id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population, elevation, dem, tz, modified_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)")
+            .bind(id)
+            .bind(name)
+            .bind(ascii)
+            .bind(alt_name)
+            .bind(lat)
+            .bind(long)
+            .bind(feat_class)
+            .bind(feat_code)
+            .bind(country)
+            .bind(cc2)
+            .bind(population)
+            .bind(elevation)
+            .bind(dem)
+            .bind(tz)
+            .bind(modified_at)
+        .execute(pool).await;
+        match result {
             Ok(_) => {
-                rows += 1;
+                info!("Insertion succesful")
             }
             Err(err) => error!("update failed: {}", err),
         };
     }
-    info!("Total Rows: {}", rows);
     Ok(())
 }
 
-pub fn create_table(conn: &Connection) -> Result<()> {
+pub async fn create_table(pool: &sqlx::PgPool) -> Result<(), sqlx::Error> {
     info!("Creating table");
-    match conn.execute(
-        "CREATE TABLE cities_usa_canada (
+
+    let result = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS cities_usa_canada (
                 id INT,
                 name VARCHAR(255),
                 ascii VARCHAR(255),
@@ -153,38 +168,74 @@ pub fn create_table(conn: &Connection) -> Result<()> {
                 tz VARCHAR(50),
                 modified_at DATE
               );",
-        [],
-    ) {
+    )
+    .execute(pool)
+    .await;
+
+    match result {
         Ok(_) => {
             info!("Successfully created table");
-            return Ok(());
+            Ok(())
         }
         Err(err) => {
             error!("Error creating table: {}", err);
-            return Err(err);
+            Err(err)
         }
-    };
+    }
 }
+// pub fn create_table(conn: PgPool) -> Result<()> {
+//     info!("Creating table");
+//     match conn.execute(
+//         "CREATE TABLE cities_usa_canada (
+//                 id INT,
+//                 name VARCHAR(255),
+//                 ascii VARCHAR(255),
+//                 alt_name VARCHAR(255),
+//                 lat DECIMAL(10, 5),
+//                 long DECIMAL(10, 5),
+//                 feat_class CHAR(1),
+//                 feat_code VARCHAR(10),
+//                 country CHAR(2),
+//                 cc2 VARCHAR(2),
+//                 population INT,
+//                 elevation INT,
+//                 dem INT,
+//                 tz VARCHAR(50),
+//                 modified_at DATE
+//               );",
+//     )? {
+//         Ok(_) => {
+//             info!("Successfully created table");
+//             return Ok(());
+//         }
+//         Err(err) => {
+//             error!("Error creating table: {}", err);
+//             return Err(err);
+//         }
+//     };
+// }
 
-pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<Vec<City>> {
+pub async fn query_data_by_id(pool: &PgPool, id: String) -> Result<Vec<City>, sqlx::Error> {
     // Query data from the SQLite database
     info!("Querying for rows id: {}", id);
-    let mut stmt = conn.prepare("SELECT * FROM cities_usa_canada WHERE id=(?1)")?;
-    let mut rows = stmt.query([id])?;
+    let rows = sqlx::query("SELECT * FROM cities_usa_canada WHERE id=(?1")
+        .bind(id)
+        .fetch_all(pool)
+        .await;
     let mut cities = Vec::<City>::new();
-    while let Some(row) = rows.next()? {
-        let id: i32 = row.get(0)?;
-        let name: String = row.get(1)?;
-        let ascii: String = row.get(2)?; // Adjust the type based on your column types
-        let alt_name: String = row.get(3)?; // Adjust the type based on your column types
-        let lat: f64 = row.get(4)?; // Adjust the type based on your column types
-        let long: f64 = row.get(5)?; // Adjust the type based on your column types
-        let feat_class: String = row.get(6)?; // Adjust the type based on your column types
-        let feat_code: String = row.get(7)?; // Adjust the type based on your column types
-        let country: String = row.get(8)?; // Adjust the type based on your column types
-        let cc2: String = row.get(9)?; // Adjust the type based on your column types
+    for row in rows? {
+        let id: i32 = row.try_get(0)?;
+        let name: String = row.try_get(1)?;
+        let ascii: String = row.try_get(2)?; // Adjust the type based on your column types
+        let alt_name: String = row.try_get(3)?; // Adjust the type based on your column types
+        let lat: f64 = row.try_get(4)?; // Adjust the type based on your column types
+        let long: f64 = row.try_get(5)?; // Adjust the type based on your column types
+        let feat_class: String = row.try_get(6)?; // Adjust the type based on your column types
+        let feat_code: String = row.try_get(7)?; // Adjust the type based on your column types
+        let country: String = row.try_get(8)?; // Adjust the type based on your column types
+        let cc2: String = row.try_get(9)?; // Adjust the type based on your column types
         let mut population_num: i32 = -1;
-        match row.get(10) {
+        match row.try_get(10) {
             Ok(population) => {
                 population_num = population;
             }
@@ -192,9 +243,9 @@ pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<Vec<City>> {
                 error!("Error parsing population: {}", err);
             }
         }
-        let elevation: i32 = row.get(11)?; // Adjust the type based on your column types
-        let dem: i32 = row.get(12)?; // Adjust the type based on your column types
-        let tz: String = row.get(13)?; // Adjust the type based on your column types
+        let elevation: i32 = row.try_get(11)?; // Adjust the type based on your column types
+        let dem: i32 = row.try_get(12)?; // Adjust the type based on your column types
+        let tz: String = row.try_get(13)?; // Adjust the type based on your column types
         info!("Row: id={}, name={}, ascii={}, alt_name={}, lat={}, long={}, feat_class={}, feat_code={}, country={}, cc2={}, population={}, elevation={}, dem={}, tz={}", id, name, ascii, alt_name, lat, long, feat_class, feat_code, country, cc2, population_num, elevation, dem, tz);
         cities.push(City::new(
             id,
@@ -215,11 +266,12 @@ pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<Vec<City>> {
     }
     // Check if any rows were found
     if cities.is_empty() {
-        return Err(rusqlite::Error::QueryReturnedNoRows.into());
+        return Err(sqlx::Error::RowNotFound);
     }
 
     Ok(cities)
 }
+
 // pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
 //     info!("Querying data for ID: {}", id);
 //     // Query data from the SQLite database
