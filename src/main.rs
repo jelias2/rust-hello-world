@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post},
+    routing::{get},
     Router,
 };
 use env_logger::Env;
@@ -8,7 +8,7 @@ use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::net::TcpListener;
 mod utils;
-use utils::utils::*;
+
 mod db;
 use db::db::*;
 // use rusqlite::Connection;
