@@ -1,15 +1,8 @@
-// use axum::Error;
-// use csv::ReaderBuilder;
-
 use log::{error, info};
 use sqlx::PgPool;
 use sqlx::Row;
 use std::fs::File;
 use std::io::{self};
-
-// #[derive(Debug, sqlx::Type)]
-// #[sqlx(rename = "numeric")]
-// pub struct Numeric(BigDecimal);
 
 pub struct City {
     id: i32,
@@ -249,24 +242,3 @@ pub async fn query_data_by_id(pool: &PgPool, id: i32) -> Result<Vec<City>, sqlx:
 
     Ok(cities)
 }
-
-// pub fn query_data_by_id(conn: &Connection, id: u32) -> Result<()> {
-//     info!("Querying data for ID: {}", id);
-//     // Query data from the SQLite database
-//     let mut stmt = conn.prepare("SELECT * FROM cities_usa_canada")?;
-//     let rows = stmt
-//         .query_map([], |row| {
-//             match row.get::<i32>(0) {
-//                 Ok(val) => {
-//                     info!("Value: {}", val)
-//                 }
-//                 Err(err) => {
-//                     error!("Error getting value: {}", err);
-//                 }
-//             }
-//             Ok(()) // Assuming the query_map closure is used only to count the rows
-//         })?
-//         .count();
-//     info!("{} rows returned", rows);
-//     Ok(())
-// }

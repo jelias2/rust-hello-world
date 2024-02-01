@@ -1,18 +1,12 @@
-use axum::{
-    routing::{get},
-    Router,
-};
+use axum::{routing::get, Router};
 use env_logger::Env;
 use log::{error, info, warn};
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 use tokio::net::TcpListener;
-mod utils;
-
 mod db;
+mod utils;
 use db::db::*;
-// use rusqlite::Connection;
-
 #[tokio::main]
 
 async fn main() {
