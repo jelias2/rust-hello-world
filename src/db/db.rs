@@ -161,7 +161,7 @@ pub async fn create_table(pool: &sqlx::PgPool) -> Result<(), sqlx::Error> {
 
     let result = sqlx::query(
         "CREATE TABLE IF NOT EXISTS cities_usa_canada (
-                id INT,
+                id INT PRIMARY KEY,
                 name VARCHAR(255),
                 ascii VARCHAR(255),
                 alt_name VARCHAR(255),
@@ -192,37 +192,6 @@ pub async fn create_table(pool: &sqlx::PgPool) -> Result<(), sqlx::Error> {
         }
     }
 }
-// pub fn create_table(conn: PgPool) -> Result<()> {
-//     info!("Creating table");
-//     match conn.execute(
-//         "CREATE TABLE cities_usa_canada (
-//                 id INT,
-//                 name VARCHAR(255),
-//                 ascii VARCHAR(255),
-//                 alt_name VARCHAR(255),
-//                 lat DECIMAL(10, 5),
-//                 long DECIMAL(10, 5),
-//                 feat_class CHAR(1),
-//                 feat_code VARCHAR(10),
-//                 country CHAR(2),
-//                 cc2 VARCHAR(2),
-//                 population INT,
-//                 elevation INT,
-//                 dem INT,
-//                 tz VARCHAR(50),
-//                 modified_at DATE
-//               );",
-//     )? {
-//         Ok(_) => {
-//             info!("Successfully created table");
-//             return Ok(());
-//         }
-//         Err(err) => {
-//             error!("Error creating table: {}", err);
-//             return Err(err);
-//         }
-//     };
-// }
 
 pub async fn query_data_by_id(pool: &PgPool, id: i32) -> Result<Vec<City>, sqlx::Error> {
     // Query data from the SQLite database

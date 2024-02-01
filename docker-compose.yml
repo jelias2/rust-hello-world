@@ -5,7 +5,7 @@ services:
     image: postgres:alpine3.19
     restart: always
     # networks:
-      # mynetwork: {}
+    # mynetwork: {}
     ports:
       - "5432:5432"
     # network_mode: host  # Use the host network
@@ -14,12 +14,11 @@ services:
       POSTGRES_DB: postgres # Specify the database name
       POSTGRES_USER: postgres # Specify the database user
     volumes:
-      - postgres-data2:/var/lib/postgresql/data
-
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  postgres-data2:
+  postgres-data:
 
-# networks:
-  # mynetwork:
+    # networks:
+    # mynetwork:
     # external: true
