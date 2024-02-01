@@ -1,10 +1,15 @@
 // use axum::Error;
 // use csv::ReaderBuilder;
+use bigdecimal::BigDecimal;
 use log::{error, info};
 use sqlx::PgPool;
 use sqlx::Row;
 use std::fs::File;
 use std::io::{self};
+
+// #[derive(Debug, sqlx::Type)]
+// #[sqlx(rename = "numeric")]
+// pub struct Numeric(BigDecimal);
 
 pub struct City {
     id: i32,
@@ -71,8 +76,12 @@ pub async fn read_csv_and_insert(pool: &PgPool, file_path: &str) -> io::Result<(
     let mut rdr = csv::Reader::from_reader(file);
 
     // Iterate over CSV records and insert into the SQLite database
-    // let mut rows = 0;
+    let mut rows = 0;
     for result in rdr.records() {
+        if rows > 11 {
+            break;
+        }
+        rows += 1;
         let record = result?;
         let id: i32 = match record[0].parse() {
             Ok(id) => id,
@@ -156,8 +165,8 @@ pub async fn create_table(pool: &sqlx::PgPool) -> Result<(), sqlx::Error> {
                 name VARCHAR(255),
                 ascii VARCHAR(255),
                 alt_name VARCHAR(255),
-                lat DECIMAL(10, 5),
-                long DECIMAL(10, 5),
+                lat DOUBLE PRECISION,
+                long DOUBLE PRECISION,
                 feat_class CHAR(1),
                 feat_code VARCHAR(10),
                 country CHAR(2),
