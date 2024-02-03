@@ -10,23 +10,13 @@ use axum::{
 };
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
-use sqlx::{Executor, PgPool};
-// #[derive(Clone)]
-// pub struct Handler {
-//     conn: Connection,
-// }
-
-// impl Handler {
-//     pub fn new(conn: Connection) -> Handler {
-//         Handler { conn: conn }
-//     }
-// }
+use sqlx::PgPool;
 
 pub async fn query_city(
     // this argument tells axum to parse the request body
     // as JSON into a `CreateUser` type
     State(state): State<PgPool>,
-    Json(_payload): Json<QueryCity>,
+    Json(_payload): Json<QueryCityRequest>,
 ) -> Result<(StatusCode, Json<Vec<db::City>>), (StatusCode, Json<String>)> {
     // this will be converted into a JSON response
     // with a status code of `201 Created`
@@ -35,19 +25,26 @@ pub async fn query_city(
         Err(err) => Err((StatusCode::NOT_FOUND, Json(err.to_string()))),
     }
 }
-pub fn hello_from_module() {
-    println!("Hello from the module!");
-}
-
-// basic handler that responds with a static string
-pub async fn root() -> &'static str {
-    "Hello, World!"
-}
 
 // the input to our `create_user` handler
 #[derive(Deserialize)]
-pub struct QueryCity {
+pub struct QueryCityRequest {
     id: u32,
+}
+
+#[derive(Serialize)]
+pub struct QueryCityResponse {
+    message: &'static str,
+    cities: Vec<db::City>,
+}
+
+impl QueryCityResponse {
+    pub fn new(message: &'static str, cities: Vec<db::City>) -> QueryCityResponse {
+        QueryCityResponse {
+            message: message,
+            cities: cities,
+        }
+    }
 }
 
 // the output to our `create_user` handler
@@ -93,7 +90,6 @@ where
 }
 
 #[derive(serde::Deserialize)]
-// #[diesel(table_name = users)]
 pub struct NewUser {
     name: String,
 }
@@ -127,7 +123,6 @@ pub async fn post_path(Path(id): Path<String>, State(state): State<PgPool>) -> i
                     cities
                 }
             };
-            info!("Final Citites: {}: {}", id_int, final_cities.index(0).name);
             final_cities
         }
         Err(err) => {
@@ -135,8 +130,7 @@ pub async fn post_path(Path(id): Path<String>, State(state): State<PgPool>) -> i
             cities
         }
     };
-    // info!("Final Cities: {}: {:?}", id_int, final_cities);
-    return (StatusCode::OK, Json(final_cities)).into_response();
+    return (StatusCode::OK, Json(final_cities));
 }
 
 pub async fn list_users(
@@ -144,16 +138,4 @@ pub async fn list_users(
 ) -> Result<Json<Vec<i32>>, (StatusCode, String)> {
     let v = vec![32];
     Ok(Json(v))
-}
-
-pub async fn lookup_city_handler(
-    id: i32,
-    // State(pool): State<PgPool>,
-    // Extract the request body.
-) -> Result<String, (StatusCode, String)> {
-    // let cities = match db::query_data_by_id(&pool, id).await {
-    //     Ok(cities) => (StatusCode::OK, "worked".to_string()),
-    //     Err(err) => Err(err.to_string()),
-    // };
-    Ok(id.to_string())
 }
