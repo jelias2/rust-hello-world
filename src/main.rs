@@ -68,21 +68,12 @@ async fn main() {
         info!("City Name: {} population: {}", i.name, i.population);
     }
 
-    // let handler = utils::utils::Handler::new(conn);
-
     // build our application with a route
     let app = Router::new()
-        // let app = Router::new()
         .route("/user/list", get(utils::utils::list_users))
-        // .route("/user/create", post(utils::utils::create_user))
         .route("/post", post(utils::utils::post))
         .route("/post/:id", post(utils::utils::post_path))
-        // .with_state(pool);
-        // `GET /` goes to `root`
-        // .route("/city", post(utils::utils::create_user))
-        // .route("/", get(utils::utils::using_connection_pool_extractor))
         .with_state(pool);
-    // .route("/response", get(handle_get)
 
     // run our app with hyper, listening globally on port 3000
     let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();

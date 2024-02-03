@@ -4,6 +4,7 @@ use sqlx::Row;
 use std::fs::File;
 use std::io::{self};
 
+#[derive(serde::Serialize)]
 pub struct City {
     id: i32,
     pub name: String,

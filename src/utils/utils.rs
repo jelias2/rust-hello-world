@@ -1,4 +1,5 @@
 use core::ascii;
+use std::ops::Index;
 
 use crate::db::*;
 use axum::{
@@ -97,12 +98,6 @@ pub struct NewUser {
     name: String,
 }
 
-// pub async fn create_user(
-//     State(_pool): State<PgPool>,
-//     Json(new_user): Json<NewUser>,
-// ) -> (StatusCode, Json<NewUser>) {
-//     (StatusCode::CREATED, Json(new_user))
-// }
 pub async fn post(
     State(_state): State<PgPool>,
     Json(new_user): Json<NewUser>,
@@ -112,10 +107,36 @@ pub async fn post(
     (StatusCode::OK, new_user.name)
 }
 
-pub async fn post_path(Path(id): Path<String>, State(_state): State<PgPool>) -> impl IntoResponse {
+pub async fn post_path(Path(id): Path<String>, State(state): State<PgPool>) -> impl IntoResponse {
     // A default template or else the compiler complains
-    info!("Recived id: {}", id);
-    (StatusCode::OK, id.to_string())
+    let cities: Vec<db::City> = Vec::new();
+    let final_cities = match id.parse::<i32>() {
+        Ok(id_int) => {
+            info!("Recived id: {}", id);
+            let final_cities = match db::query_data_by_id(&state, id_int).await {
+                Ok(cities) => {
+                    info!(
+                        "Successfully found city with id: {}: {}",
+                        id_int,
+                        cities.index(0).name
+                    );
+                    cities
+                }
+                Err(err) => {
+                    error!("Error querying for cities: {}", err.to_string());
+                    cities
+                }
+            };
+            info!("Final Citites: {}: {}", id_int, final_cities.index(0).name);
+            final_cities
+        }
+        Err(err) => {
+            error!("Bad Request parsing path: {}", err.to_string());
+            cities
+        }
+    };
+    // info!("Final Cities: {}: {:?}", id_int, final_cities);
+    return (StatusCode::OK, Json(final_cities)).into_response();
 }
 
 pub async fn list_users(
