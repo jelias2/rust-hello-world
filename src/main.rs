@@ -76,6 +76,7 @@ async fn main() {
         .route("/user/list", get(utils::utils::list_users))
         // .route("/user/create", post(utils::utils::create_user))
         .route("/post", post(utils::utils::post))
+        .route("/post/:id", post(utils::utils::post_path))
         // .with_state(pool);
         // `GET /` goes to `root`
         // .route("/city", post(utils::utils::create_user))

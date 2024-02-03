@@ -1,3 +1,5 @@
+use core::ascii;
+
 use crate::db::*;
 use axum::{
     extract::{Path, State},
@@ -108,6 +110,12 @@ pub async fn post(
     // A default template or else the compiler complains
     info!("Recived body: {}", new_user.name);
     (StatusCode::OK, new_user.name)
+}
+
+pub async fn post_path(Path(id): Path<String>, State(_state): State<PgPool>) -> impl IntoResponse {
+    // A default template or else the compiler complains
+    info!("Recived id: {}", id);
+    (StatusCode::OK, id.to_string())
 }
 
 pub async fn list_users(
