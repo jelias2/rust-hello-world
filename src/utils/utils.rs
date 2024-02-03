@@ -91,7 +91,7 @@ where
 
 #[derive(serde::Deserialize)]
 // #[diesel(table_name = users)]
-struct NewUser {
+pub struct NewUser {
     name: String,
 }
 
@@ -101,10 +101,13 @@ struct NewUser {
 // ) -> (StatusCode, Json<NewUser>) {
 //     (StatusCode::CREATED, Json(new_user))
 // }
-pub async fn post(Path(id): Path<String>, State(_state): State<PgPool>) -> impl IntoResponse {
+pub async fn post(
+    State(_state): State<PgPool>,
+    Json(new_user): Json<NewUser>,
+) -> impl IntoResponse {
     // A default template or else the compiler complains
-    info!("Recived body:");
-    (StatusCode::OK, id.to_string())
+    info!("Recived body: {}", new_user.name);
+    (StatusCode::OK, new_user.name)
 }
 
 pub async fn list_users(

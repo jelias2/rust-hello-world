@@ -75,7 +75,7 @@ async fn main() {
         // let app = Router::new()
         .route("/user/list", get(utils::utils::list_users))
         // .route("/user/create", post(utils::utils::create_user))
-        .route("/post/:id", post(utils::utils::post))
+        .route("/post", post(utils::utils::post))
         // .with_state(pool);
         // `GET /` goes to `root`
         // .route("/city", post(utils::utils::create_user))
