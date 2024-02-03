@@ -1,4 +1,11 @@
-use axum::{routing::get, Router};
+// use axum::{routing::get, routing::post, Router};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::Json,
+    routing::{get, post},
+    Router,
+};
 use env_logger::Env;
 use log::{error, info, warn};
 use sqlx::postgres::PgPoolOptions;
@@ -26,7 +33,6 @@ async fn main() {
         warn!("Debug mode enabled");
     }
 
-    // let db_connection = "postgres://postgres:postgres@127.0.0.1:5432";
     let db_connection = "postgres://postgres:postgres@127.0.0.1:5432/postgres";
     let db_connection_str =
         std::env::var("DATABASE_URL").unwrap_or_else(|_| db_connection.to_string());
@@ -66,12 +72,15 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
+        // let app = Router::new()
+        .route("/user/list", get(utils::utils::list_users))
+        // .route("/user/create", post(utils::utils::create_user))
+        .route("/post/:id", post(utils::utils::post))
+        // .with_state(pool);
         // `GET /` goes to `root`
-        // .route("/query_city", post(query_city))
-        .route(
-            "/",
-            get(utils::utils::using_connection_pool_extractor).with_state(pool),
-        );
+        // .route("/city", post(utils::utils::create_user))
+        // .route("/", get(utils::utils::using_connection_pool_extractor))
+        .with_state(pool);
     // .route("/response", get(handle_get)
 
     // run our app with hyper, listening globally on port 3000

@@ -1,8 +1,13 @@
 use crate::db::*;
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::{Html, IntoResponse},
+    Json,
+};
+use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use sqlx::{Executor, PgPool};
-
 // #[derive(Clone)]
 // pub struct Handler {
 //     conn: Connection,
@@ -82,4 +87,41 @@ where
     E: std::error::Error,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+}
+
+#[derive(serde::Deserialize)]
+// #[diesel(table_name = users)]
+struct NewUser {
+    name: String,
+}
+
+// pub async fn create_user(
+//     State(_pool): State<PgPool>,
+//     Json(new_user): Json<NewUser>,
+// ) -> (StatusCode, Json<NewUser>) {
+//     (StatusCode::CREATED, Json(new_user))
+// }
+pub async fn post(Path(id): Path<String>, State(_state): State<PgPool>) -> impl IntoResponse {
+    // A default template or else the compiler complains
+    info!("Recived body:");
+    (StatusCode::OK, id.to_string())
+}
+
+pub async fn list_users(
+    State(_pool): State<PgPool>,
+) -> Result<Json<Vec<i32>>, (StatusCode, String)> {
+    let v = vec![32];
+    Ok(Json(v))
+}
+
+pub async fn lookup_city_handler(
+    id: i32,
+    // State(pool): State<PgPool>,
+    // Extract the request body.
+) -> Result<String, (StatusCode, String)> {
+    // let cities = match db::query_data_by_id(&pool, id).await {
+    //     Ok(cities) => (StatusCode::OK, "worked".to_string()),
+    //     Err(err) => Err(err.to_string()),
+    // };
+    Ok(id.to_string())
 }
