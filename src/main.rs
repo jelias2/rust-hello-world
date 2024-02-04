@@ -8,6 +8,7 @@ use axum::{
 };
 use env_logger::Env;
 use log::{error, info, warn};
+use metrics::Label;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 mod db;
@@ -79,14 +80,6 @@ async fn main() {
     // tracing::debug!("listening on {}", listener.local_addr().unwrap());
     // axum::serve(listener, app).await.unwrap();
 
-    // tracing_subscriber::registry()
-    //     .with(
-    //         tracing_subscriber::EnvFilter::try_from_default_env()
-    //             .unwrap_or_else(|_| "example_todos=debug,tower_http=debug".into()),
-    //     )
-    //     .with(tracing_subscriber::fmt::layer())
-    //     .init();
-
     // The `/metrics` endpoint should not be publicly available. If behind a reverse proxy, this
     // can be achieved by rejecting requests to `/metrics`. In this example, a second server is
     // started on another port to expose `/metrics`.
@@ -142,6 +135,7 @@ fn setup_metrics_recorder() -> PrometheusHandle {
             EXPONENTIAL_SECONDS,
         )
         .unwrap()
+        .add_global_label("key", "val")
         .install_recorder()
         .unwrap()
 }
