@@ -1,8 +1,5 @@
 // use axum::{routing::get, routing::post, Router};
 use axum::{
-    extract::State,
-    http::StatusCode,
-    response::Json,
     routing::{get, post},
     Router,
 };
@@ -71,6 +68,7 @@ async fn main() {
     // build our application with a route
     let app = Router::new()
         .route("/user/list", get(utils::utils::list_users))
+        .route("/health", get(utils::utils::handle_get))
         .route("/post", post(utils::utils::post))
         .route("/post/:id", post(utils::utils::post_path))
         .with_state(pool);

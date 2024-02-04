@@ -32,20 +32,20 @@ pub struct QueryCityRequest {
     id: u32,
 }
 
-#[derive(Serialize)]
-pub struct QueryCityResponse {
-    message: &'static str,
-    cities: Vec<db::City>,
-}
+// #[derive(Serialize)]
+// pub struct QueryCityResponse {
+//     message: &'static str,
+//     cities: Vec<db::City>,
+// }
 
-impl QueryCityResponse {
-    pub fn new(message: &'static str, cities: Vec<db::City>) -> QueryCityResponse {
-        QueryCityResponse {
-            message: message,
-            cities: cities,
-        }
-    }
-}
+// impl QueryCityResponse {
+//     pub fn new(message: &'static str, cities: Vec<db::City>) -> QueryCityResponse {
+//         QueryCityResponse {
+//             message: message,
+//             cities: cities,
+//         }
+//     }
+// }
 
 // the output to our `create_user` handler
 #[derive(Serialize)]
@@ -70,16 +70,6 @@ pub async fn handle_get() -> Result<Json<MyData>, StatusCode> {
     Ok(Json(data))
 }
 
-// we can extract the connection pool with `State`
-pub async fn using_connection_pool_extractor(
-    State(pool): State<PgPool>,
-) -> Result<String, (StatusCode, String)> {
-    sqlx::query_scalar("select 'hello world from pg'")
-        .fetch_one(&pool)
-        .await
-        .map_err(internal_error)
-}
-
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
 fn internal_error<E>(err: E) -> (StatusCode, String)
@@ -89,18 +79,29 @@ where
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }
 
-#[derive(serde::Deserialize)]
-pub struct NewUser {
-    name: String,
-}
-
 pub async fn post(
-    State(_state): State<PgPool>,
-    Json(new_user): Json<NewUser>,
+    State(state): State<PgPool>,
+    Json(query_city_request): Json<QueryCityRequest>,
 ) -> impl IntoResponse {
     // A default template or else the compiler complains
-    info!("Recived body: {}", new_user.name);
-    (StatusCode::OK, new_user.name)
+    info!("Recived request for city ID: {}", query_city_request.id);
+    let id = query_city_request.id as i32;
+    let cities: Vec<db::City> = Vec::new();
+    let final_cities = match db::query_data_by_id(&state, id).await {
+        Ok(cities) => {
+            info!(
+                "Successfully found city with id: {}: {}",
+                id,
+                cities.index(0).name
+            );
+            cities
+        }
+        Err(err) => {
+            error!("Error querying for cities: {}", err.to_string());
+            cities
+        }
+    };
+    return (StatusCode::OK, Json(final_cities)).into_response();
 }
 
 pub async fn post_path(Path(id): Path<String>, State(state): State<PgPool>) -> impl IntoResponse {
