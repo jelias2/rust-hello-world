@@ -1,25 +1,20 @@
+mod db;
+mod prometheus;
+mod utils;
+
 use axum::{
-    extract::{MatchedPath, Request},
-    middleware::{self, Next},
-    response::IntoResponse,
+    middleware::{self},
     routing::get,
     routing::post,
     Router,
 };
+use db::db::*;
 use env_logger::Env;
 use log::{error, info, warn};
-use metrics::Label;
+use prometheus::prometheus::*;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-mod db;
-mod utils;
-use db::db::*;
-use metrics_exporter_prometheus::{Matcher, PrometheusBuilder, PrometheusHandle};
-use std::{
-    future::ready,
-    time::{Duration, Instant},
-};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use std::time::Duration;
 
 #[tokio::main]
 
@@ -76,10 +71,6 @@ async fn main() {
     }
 
     // run our app with hyper, listening globally on port 3000
-    // let listener = TcpListener::bind("127.0.0.1:3002").await.unwrap();
-    // tracing::debug!("listening on {}", listener.local_addr().unwrap());
-    // axum::serve(listener, app).await.unwrap();
-
     // The `/metrics` endpoint should not be publicly available. If behind a reverse proxy, this
     // can be achieved by rejecting requests to `/metrics`. In this example, a second server is
     // started on another port to expose `/metrics`.
@@ -106,62 +97,4 @@ async fn start_main_server(pool: PgPool) {
         .unwrap();
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn start_metrics_server() {
-    let app = metrics_app();
-
-    // NOTE: expose metrics endpoint on a different port
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3001")
-        .await
-        .unwrap();
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
-}
-
-fn metrics_app() -> Router {
-    let recorder_handle = setup_metrics_recorder();
-    Router::new().route("/metrics", get(move || ready(recorder_handle.render())))
-}
-
-fn setup_metrics_recorder() -> PrometheusHandle {
-    const EXPONENTIAL_SECONDS: &[f64] = &[
-        0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
-    ];
-
-    PrometheusBuilder::new()
-        .set_buckets_for_metric(
-            Matcher::Full("http_requests_duration_seconds".to_string()),
-            EXPONENTIAL_SECONDS,
-        )
-        .unwrap()
-        .add_global_label("key", "val")
-        .install_recorder()
-        .unwrap()
-}
-
-async fn track_metrics(req: Request, next: Next) -> impl IntoResponse {
-    let start = Instant::now();
-    let path = if let Some(matched_path) = req.extensions().get::<MatchedPath>() {
-        matched_path.as_str().to_owned()
-    } else {
-        req.uri().path().to_owned()
-    };
-    let method = req.method().clone();
-
-    let response = next.run(req).await;
-
-    let latency = start.elapsed().as_secs_f64();
-    let status = response.status().as_u16().to_string();
-
-    let labels = [
-        ("method", method.to_string()),
-        ("path", path),
-        ("status", status),
-    ];
-
-    metrics::counter!("http_requests_total", &labels).increment(1);
-    metrics::histogram!("http_requests_duration_seconds", &labels).record(latency);
-
-    response
 }
