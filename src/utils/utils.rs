@@ -1,14 +1,13 @@
-use core::ascii;
 use std::ops::Index;
 
 use crate::db::*;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::{Html, IntoResponse},
+    response::IntoResponse,
     Json,
 };
-use log::{error, info, warn};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
@@ -89,15 +88,15 @@ pub async fn post(
     let cities: Vec<db::City> = Vec::new();
     let final_cities = match db::query_data_by_id(&state, id).await {
         Ok(cities) => {
-            info!(
-                "Successfully found city with id: {}: {}",
-                id,
-                cities.index(0).name
-            );
+            // info!(
+            //     "Successfully found city with id: {}: {}",
+            //     id,
+            //     cities.index(0).name
+            // );
             cities
         }
         Err(err) => {
-            error!("Error querying for cities: {}", err.to_string());
+            // error!("Error querying for cities: {}", err.to_string());
             cities
         }
     };
